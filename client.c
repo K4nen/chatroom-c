@@ -30,7 +30,7 @@ void str_trim_lf (char* arr, int length) {
 }
 
 void str_overwrite_stdout() {
-    printf("\r%s", "> ");
+    printf("\r%s", "Vous : ");
     fflush(stdout);
 }
 
@@ -62,6 +62,11 @@ void send_msg_handler() {
                 break;
             }
         }
+        if(strncmp(message,"!disconnect",11)==0){
+            close(sockfd);
+            printf("Vous avez été déconnecté.\n");
+            exit(0);
+        }
         send(sockfd, message, LENGTH_MSG, 0);
         if (strcmp(message, "exit") == 0) {
             break;
@@ -70,15 +75,11 @@ void send_msg_handler() {
     catch_ctrl_c_and_exit(2);
 }
 
-int main()
+int main(int argc, char **argv)
 {
     signal(SIGINT, catch_ctrl_c_and_exit);
 
-    printf("Entrez votre nom : ");
-    if (fgets(nickname, LENGTH_NAME, stdin) != NULL) {
-        str_trim_lf(nickname, LENGTH_NAME);
-    }
-    if (strlen(nickname) < 2 || strlen(nickname) >= LENGTH_NAME-1) {
+    if (strlen(argv[1]) < 2 || strlen(argv[1]) >= LENGTH_NAME-1) {
         printf("\nLe nom doit faire entre 2 et 30 caracatères\n");
         exit(EXIT_FAILURE);
     }
@@ -113,7 +114,7 @@ int main()
     printf("Connexion au serveur : %s:%d\n", inet_ntoa(server_info.sin_addr), ntohs(server_info.sin_port));
     printf("Vous êtes: %s:%d\n", inet_ntoa(client_info.sin_addr), ntohs(client_info.sin_port));
 
-    send(sockfd, nickname, LENGTH_NAME, 0);
+    send(sockfd, argv[1], LENGTH_NAME, 0);
 
     pthread_t send_msg_thread;
     if (pthread_create(&send_msg_thread, NULL, (void *) send_msg_handler, NULL) != 0) {
